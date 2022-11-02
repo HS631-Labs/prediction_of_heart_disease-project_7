@@ -1,0 +1,51 @@
+---
+title: "Heart Disease"
+author: "Shannon Walsh"
+date: "11/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(plotly)
+library(stats)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(data.table)
+library(tidyverse)
+library(pastecs)
+library(dbplyr)
+library(Hmisc)
+library(scales)
+library(ROSE)
+library(corrplot)
+library(pscl)
+library(DT)
+library(caret)
+library(varImp)
+```
+
+```{r}
+getwd()
+```
+
+```{r}
+Heart <- read.csv("heart_attempt.txt")
+```
+
+```{r}
+head(Heart)
+```
+
+```{r}
+summary(Heart)
+```
+
+```{r}
+
+```
+
