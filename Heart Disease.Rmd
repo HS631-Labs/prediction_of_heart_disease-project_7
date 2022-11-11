@@ -34,7 +34,8 @@ getwd()
 ```
 
 ```{r}
-Heart <- read.csv("heart_attempt.txt")
+heart_dataframe <- read.csv("./data/heart.csv")
+head(heart_dataframe)
 ```
 
 ```{r}
