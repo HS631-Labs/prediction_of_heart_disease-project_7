@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Chunk 1: #Libraries 
 ```{r}
 library(plotly)
 library(stats)
@@ -29,21 +30,32 @@ library(caret)
 library(varImp)
 ```
 
+#Chunk 2: Working directory 
 ```{r}
 getwd()
 ```
 
+#Chunk 3: Read in the data 
 ```{r}
 heart_dataframe <- read.csv("./data/heart.csv")
-head(heart_dataframe)
+head(heart_dataframe, 20)
+str(heart_dataframe)
+```
+Interpretation: 
+1. The data set has 918 observations (i.e. number of subjects) and 12 variables 
+2. Independent Variables: 
+
+#Chunk 4: Check NAs and missing Data 
+```{r}
+any(is.na(heart_dataframe))
 ```
 
+Data Exploration
 ```{r}
-head(Heart)
-```
+
 
 ```{r}
-summary(Heart)
+
 ```
 
 ```{r}
