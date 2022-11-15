@@ -28,6 +28,8 @@ library(pscl)
 library(DT)
 library(caret)
 library(varImp)
+library(gridBase)
+library(gridExtra)
 ```
 
 #Chunk 2: Working directory 
@@ -59,7 +61,11 @@ heart_dataframe$Cholesterol[invalid_Cholesterol]<- NA
 
 invalid_MaxHR <- heart_dataframe$MaxHR == 0
 heart_dataframe$MaxHR[invalid_MaxHR] <- NA
+
+na.omit(heart_dataframe)
+colSums(is.na(heart_dataframe))
 summary(heart_dataframe)
+head(heart_dataframe, 20)
 ```
 
 #Chunk 5: DataType Conversion
@@ -107,11 +113,19 @@ summary(heart_dataframe)
 str(heart_dataframe)
 ```
 
+
 #Chunk 6: Characterizing distributions of variables
 Bar plots used for factor variables and Histograms for continuous variables. 
 ```{r}
 
-#Age 
+#Age
+qqplot_Age<- qplot(sample = heart_dataframe$Age)+
+xlab("Age in years")+
+ylab("count")
+qqplot_Age
+
+#qqplot o/p indicates age of subjects are normally distributed.
+
 barplot_age <-heart_dataframe %>%
   group_by(Age) %>%
   count() %>%
@@ -120,9 +134,12 @@ barplot_age <-heart_dataframe %>%
   geom_col(aes(Age,n), fill = "Blue")+
   ggtitle("Age distribution of the Heart Disease Dataset")
 barplot_age
-stat.desc(heart_dataframe$Age, basic = FALSE, norm = TRUE)
-#Age of majority of subjects falls between 50-60years. Skewed slightly negative skew. Kurtosis    
+#Age of majority of subjects falls between 50-60years. Plot shows a very slight negative skew. 
 
+describe (heart_dataframe$Age)
+#Mean age 54yrs 
+
+stat.desc(heart_dataframe$Age, basic = FALSE, norm = TRUE)
 
 #Sex
 gender_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Sex, fill = heart_dataframe$Sex))+
@@ -132,7 +149,7 @@ gender_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Sex, fill
   ggtitle("Distribution of Gender")+
   scale_fill_discrete(name = "Gender", labels = c("Female","Male"))
 gender_distribution
-#Dataset contains significantly higher number of males(700) compared to females (200)
+#Data set contains significantly higher number of males(700) compared to females (200)
 
 #Chest Pain Types
 CP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ChestPainType, fill = heart_dataframe$ChestPainType))+
@@ -143,6 +160,14 @@ CP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ChestPainType
   scale_fill_discrete(name = "Types of Chest Pain", labels = c("Asymptomatic", "Atypica", "Non-Anginal", "Typical"))
 CP_distribution
 
+# percent distribution of chest pain types 
+cp_table <- table(heart_dataframe$ChestPainType)
+percent_cp <- round(cp_table/sum(cp_table) *100)
+labels1 <- paste(names(cp_table), percent_cp)
+labels2 <- paste(labels1, "%", sep = "")
+pie(cp_table, labels = labels2, col = c("azure1", "azure2", "azure3", "azure4"), main = "Distribution of types of chest pain within heart dataset" ) 
+
+#Atypical Angina is the most observed 
 
 #Fasting blood sugar 
 BS_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$FastingBS, fill = heart_dataframe$FastingBS))+
@@ -196,27 +221,34 @@ prop.table(table(heart_dataframe$HeartDisease))
 
 #Histograms for continuous integer/dbl variables 
 #Cholesterol
-cholesterol_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Cholesterol, fill = heart_dataframe$Cholesterol))+
+cholesterol_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Cholesterol, fill = heart_dataframe$Cholesterol, na.rm = TRUE))+
   geom_histogram(color = "Black", fill = "Chocolate")+
   xlab("Serum Cholesterol Levels in mg/dl")+
   ylab("count")+
   ggtitle("Distribution of Serum Cholesterol Levels across database")
 cholesterol_distribution 
+
+qqplot_cholesterol<- qplot(sample = heart_dataframe$Cholesterol, na.rm = TRUE)+
+xlab("Serum Cholesterol Levels in mg/dl")+
+ylab("count")
+qqplot_cholesterol
+describe(heart_dataframe$Cholesterol)
 stat.desc(heart_dataframe$Cholesterol, basic = FALSE, norm = TRUE)
 
-#Cholesterol Levels appears to be normally distributed with negative kurtosis. The distribution also shows significant outliers to the right which may make the distribution to the positively skewed?  
+#Cholesterol Levels appears to be not normally distributed, has a positive skew. The distribution also shows significant outliers to the right which may make the distribution to the positively skewed. Kurtosis of 4.47 (>3) indicates data is leptokurtic(heavy tails)
 
 
-#Resting BP 
-BP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingBP, fill = heart_dataframe$RestingBP))+
+#Resting systolic BP 
+BP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingBP, fill = heart_dataframe$RestingBP, na.rm = TRUE))+
   geom_histogram(color = "Black", fill = "brown")+
   xlab("Blood Pressure is mmHg")+
   ylab("count")+
   ggtitle("Distribution of Resting Blood Pressure Readings")
 BP_distribution 
-stat.desc(heart_dataframe$RestingBP, basic = FALSE, norm = TRUE)
 
-# Slight positive skew with Negative Kurtosis i.e. several values father from mean and outliers at both ends. 
+describe(heart_dataframe$RestingBP)
+stat.desc(heart_dataframe$RestingBP, basic = FALSE, norm = TRUE)
+#Mean SBP  132.5mmHg
 
 
 #MaxHR
@@ -228,7 +260,7 @@ HR_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$MaxHR, fill =
 HR_distribution 
 stat.desc(heart_dataframe$MaxHR, basic = FALSE, norm = TRUE)
 
-#Data is slightly Negatively skewed. Majority of the subjects' MaxHR falls 125-150bpm and Leptokurtik with kurtosis of -4.6 i.e. Heavy tailed with values father from mean.  
+#Data is slightly Negatively skewed. Majority of the subjects' MaxHR falls 125-150bpm and data is Leptokurtik with kurtosis of -4.6 i.e. Heavy tailed with values father from mean.  
 
 #oldpeak
 Oldpeak_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Oldpeak, fill = heart_dataframe$Oldpeak))+
@@ -243,14 +275,100 @@ stat.desc(heart_dataframe$Oldpeak, basic = FALSE, norm = TRUE)
 ```
 
 
-#Correlation
-```{r}
-#Between blood pressure and chest pain type grouped by gender 
 
-cp_bp<- ggplot(heart_dataframe, aes(ChestPainType, RestingBP, color = Sex)) +
-geom_boxplot() + 
-ggtitle("Spread of resting blood pressure and chestpain time grouped by gender")+
-scale_color_manual(values = c("#FF5733","#00BFC4","#4885ed"))
-cp_bp
+
+
+#Correlation: Age and Lab Values VS Heart Disease 
+```{r}
+#Between Heart Disease and Age 
+age_HD <- ggplot(heart_dataframe, aes(x = Age, fill = HeartDisease, color = HeartDisease))+
+          geom_histogram(binwidth = 1, color = "black") +
+          facet_wrap(vars(HeartDisease))+
+          xlab("Age in Years")+
+          ylab("Frequency of presence or absence of Heart Disease")+
+          ggtitle("Distribution of Heart Disease in relation to Age")
+age_HD
+#Histogram plots for presence Vs absence(Health) of heart disease have different distributions. 
+#1. The distribution of presence of heart disease is negatively skewed.
+#2. The distribution of absence of heart disease appears to be normally distributed. 
+#3. Hence we can conclude that heart disease is more prevalent in older population compared to younger. 
+
+
+#Between Fasting blood sugar levels and presence/absence of heart disease
+FBS_HD <- ggplot(heart_dataframe, aes(x = FastingBS, fill = HeartDisease))+
+          geom_bar(position = "fill") +
+          xlab("Fasting Blood Sugar levles in mgdl")+
+          ylab("Frequency of presence or absence of Heart Disease")+
+          ggtitle("Relationship between Fasting Blood Sugar Levels and Heart Disease")
+FBS_HD
+#Barplot above shows comparison between fasting blood sugar levels and presence or absence of heart disease. 
+# Proportions in the plot indicate that there exists a relationship between fasting blood sugar levels and heart disease. 
+# Fasting blood sugar levels of >120mg/dl (high) have increased rate of presence of heart disease compared to subjects with fasting blood sugar levels of <120mg/dl (low)
+
+#Between Resting blood pressure and presence/absence of heart disease
+RBP_HD <- ggplot(heart_dataframe, aes( x = RestingBP, y = HeartDisease, fill = HeartDisease))+
+          geom_boxplot()+
+          xlab("Resting Blood Pressure in mmhg")+
+          ylab(" Heart Disease")
+# There does not appear to be a very strong relationship between resting BP and Presence and absence of heart disease as the median (middle 50%) of values for both plots are very similar. 
+
+CHL_HD <- ggplot(heart_dataframe, aes( x = Cholesterol, y = HeartDisease, fill = HeartDisease))+
+          geom_boxplot()+
+          xlab("Serum Cholesterol Levels in mg/dl")+
+          ylab("Heart Disease")
+#Similarly, there does not appear to be a very strong relationship between Serum Cholesterol and Presence and absence of heart disease as the median (middle 50%) of values for both plots are very similar. 
+
+#Relationship between max HR achieved during exercise and presence and absence of heart disease 
+MHR_HD <- ggplot(heart_dataframe, aes( x = MaxHR, y = HeartDisease, fill = HeartDisease))+
+          geom_boxplot()+
+          xlab("Maximum HR during exercise in bpm")+
+          ylab("Heart Disease")
+#Max HR is the HR per minute reached during strenuous exercise. 
+#There is a strong relationship between Max HR induced during exercise and presence and absence of heart disease. Subjects without heart disease are able to achieve a higher Max HR overall compared to subjects with heart disease. 
+
+grid.arrange(RBP_HD, CHL_HD, MHR_HD)
+```
+
+
+#Correlation: Cardiovascular events and Heart Disease 
+```{r}
+#Between Exercise induced angina and presence and absence of heart disease
+ExAng_HD <- FBS_HD <- ggplot(heart_dataframe, aes(x = ExerciseAngina, fill = HeartDisease))+
+          geom_bar(position = "fill") +
+          xlab("Presence or Absence of exercise induced angina")+
+          ylab("Heart Disease")+
+          ggtitle("Relationship between Exercise Induced Angina and Heart Disease")
+ExAng_HD
+#Barplot above shows relationship between presence or absence of exercise induced angina Vs that of heart disease
+# Proportions in the plot indicate that there exists a relationship between the two. 
+# Rate of presence of exercise induced angina is significantly higher in subjects with heart disease compared to those with no heart disease (i.e. Health)
+
+#Between ST segment depression induced by exercise and Heart Disease 
+#Note: ST segment depression less than 0.5 mm is accepted in all leads. ST segment depression 0.5 mm or more is considered pathological. 
+Oldpeak_HD <- ggplot(heart_dataframe, aes(x = Oldpeak, fill = HeartDisease, color = HeartDisease))+
+          geom_histogram(binwidth = 0.5, color = "black") +
+          facet_wrap(vars(HeartDisease))+
+          xlab("ST segment depression values in mm")+
+          ylab(" Heart Disease")+
+          ggtitle("ST depression induced by exercise and presence and absence of heart disease")
+Oldpeak_HD
+#Histrograms below show the relationship between distribution of ST segment depression induced by exercise and presence and absence of heart disease. 
+#Note: ST segment depression less than 0.5 mm is accepted in all leads. ST segment depression 0.5 mm or more is considered pathological. 
+#ST segment depression distribution in subjects without heart disease(Health) is positively skewed with majority subjects at 0.0 depression. 
+#However, the distribution in subjects with heart disease shows significant number of subjects with ST segment depression >0.5 which is considered pathological. 
+
+#Distribution of chest pain types in presence vs absence of heart disease
+CPT_HD <- ggplot(heart_dataframe, aes( x = HeartDisease, fill = ChestPainType))+
+  geom_bar(position = "dodge")+
+  xlab(" Heart Disease")+
+  ylab("Type of Chest Pain")+
+  ggtitle("Distribution of chest pain types in presence vs absence of heart disease")
+CPT_HD
+
+
+```
+#Correlation cont. 
+```{r}
+
 ```
 
