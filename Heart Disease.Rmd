@@ -115,16 +115,35 @@ head(heart_dataframe,20)
 summary(heart_dataframe)
 str(heart_dataframe)
 ```
-
-#Subset heart_dataframe - extract all numeric variables 
-```{r}
-heart_numeric <- select_if(heart_dataframe, is.numeric)
-heart_numeric
-```
-#Chunk 6: Characterizing distributions of variables - NUMERIC VARIABLES  
+#Chunk 6: Characterizing distributions of NUMERIC variables and correcting for skew
 ```{r}
 #Histograms for continuous integer/dbl variables 
-#Cholesterol
+
+#AGE
+qqplot_Age<- qplot(sample = heart_dataframe$Age)+
+xlab("Age in years")+
+ylab("count")
+qqplot_Age
+#qqplot o/p indicates age of subjects are normally distributed.
+
+age_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Age, fill = heart_dataframe$Age, na.rm = TRUE))+
+  geom_histogram(color = "Black", fill = "Chocolate")+
+  xlab("Age in years")+
+  ylab("count")+
+  ggtitle("Distribution of Age in database")
+age_distribution 
+#Age of majority of subjects falls between 50-60years. Plot shows a very slight negative skew. 
+
+describe (heart_dataframe$Age)
+stat.desc(heart_dataframe$Age, basic = FALSE, norm = TRUE)
+shapiro.test(heart_dataframe$Age) #confirms data is not normally distributed 
+
+#Correct for moderate negative new using sqrt 
+sq_age <- sqrt((max(heart_dataframe$Age)+1) - heart_dataframe$Age) 
+sq_age
+sq_age_hist <- hist(sq_age)
+
+#CHOLESTEROL 
 cholesterol_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Cholesterol, fill = heart_dataframe$Cholesterol, na.rm = TRUE))+
   geom_histogram(color = "Black", fill = "Chocolate")+
   xlab("Serum Cholesterol Levels in mg/dl")+
@@ -136,13 +155,18 @@ qqplot_cholesterol<- qplot(sample = heart_dataframe$Cholesterol, na.rm = TRUE)+
 xlab("Serum Cholesterol Levels in mg/dl")+
 ylab("count")
 qqplot_cholesterol
+
 describe(heart_dataframe$Cholesterol)
 stat.desc(heart_dataframe$Cholesterol, basic = FALSE, norm = TRUE)
-
+shapiro.test(heart_dataframe$Cholesterol)
 #Based on qqplot, descriptive statistics and histogram, Cholesterol Levels appears to be NOT normally distributed, has a positive skew. Kurtosis of 4.6 (>3) indicates data is leptokurtic.
 
+#log transformation to correct positive skew 
+log_cholesterol <- log(heart_dataframe$Cholesterol)
+log_Chol_hist <- hist(log_cholesterol, main = "Distribution of Serum Cholestrol Levels in mg/dl")
 
-#Resting systolic BP 
+
+#RESTING BLOOD PRESSURE 
 BP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingBP, fill = heart_dataframe$RestingBP, na.rm = TRUE))+
   geom_histogram(color = "Black", fill = "brown")+
   xlab("Blood Pressure is mmHg")+
@@ -152,57 +176,56 @@ BP_distribution
 
 describe(heart_dataframe$RestingBP)
 stat.desc(heart_dataframe$RestingBP, basic = FALSE, norm = TRUE)
-#Mean SBP  132.5mmHg
+shapiro.test(heart_dataframe$RestingBP)
+
+#log transformation to correct skew
+log_RBP <- log(heart_dataframe$RestingBP)
+log_RBP_hist <- hist(log_RBP, main= "Distribution of Resting BP in mmHg")
 
 
-#MaxHR
+#MAXIMUM HEART RATE 
 HR_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$MaxHR, fill = heart_dataframe$MaxHR))+
   geom_histogram(color = "Black", fill = "darkorchid1")+
   xlab("Maximum Heart Rate in bpm")+
   ylab("count")+
   ggtitle("Distribution of Maximum Heart Rate across database")
 HR_distribution 
+
+describe(heart_dataframe$MaxHR)
 stat.desc(heart_dataframe$MaxHR, basic = FALSE, norm = TRUE)
+shapiro.test(heart_dataframe$MaxHR)
 
 #Data is slightly Negatively skewed. Majority of the subjects' MaxHR falls 125-150bpm and data is Leptokurtik with kurtosis of -4.6 i.e. Heavy tailed with values father from mean.  
 
-#oldpeak
+#apply reverse score transformation, use sqrt to correct  for moderately skewed data  
+max_MHR <-  max(heart_dataframe$MaxHR)  
+all_maxHR <- heart_dataframe$MaxHR
+sqrt_MaxHR <- sqrt((max_MHR +1) - all_maxHR)
+rev_MHR_hist <- hist(sqrt_MaxHR)
+
+#OLD PEAK 
 Oldpeak_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Oldpeak, fill = heart_dataframe$Oldpeak))+
   geom_histogram(color = "Black", fill = "cadetblue")+
   xlab("Oldpeak - ST depression induced by exercise relative to rest")+
   ylab("count")+
   ggtitle("Distribution of ST depression induced by exercise relative to rest")
-Oldpeak_distribution 
+Oldpeak_distribution #Positively skewed data 
+
+
+describe(heart_dataframe$Oldpeak)
 stat.desc(heart_dataframe$Oldpeak, basic = FALSE, norm = TRUE)
 
-#Positively skewed data 
+shapiro.test(heart_dataframe$Oldpeak)  #confirms data is not normally distributed. 
+
+#Inverse data to correct for severe positive skew 
+inv_oldpeak <- 1/(heart_dataframe$Oldpeak) 
+hist(inv_oldpeak)
 ```
 
-#Chunk 7: Characterizing distributions of variables - FACTOR VARIABLES  
+#Chunk 7: Characterizing distributions of FACTOR variables   
 Bar plots used for factor variables and Histograms for continuous variables. 
 ```{r}
-#Age
-qqplot_Age<- qplot(sample = heart_dataframe$Age)+
-xlab("Age in years")+
-ylab("count")
-qqplot_Age
 
-#qqplot o/p indicates age of subjects are normally distributed.
-
-barplot_age <-heart_dataframe %>%
-  group_by(Age) %>%
-  count() %>%
-  filter(n>10) %>%
-  ggplot()+
-  geom_col(aes(Age,n), fill = "Blue")+
-  ggtitle("Age distribution of the Heart Disease Dataset")
-barplot_age
-#Age of majority of subjects falls between 50-60years. Plot shows a very slight negative skew. 
-
-describe (heart_dataframe$Age)
-#Mean age 54yrs 
-
-stat.desc(heart_dataframe$Age, basic = FALSE, norm = TRUE)
 
 #Sex
 gender_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Sex, fill = heart_dataframe$Sex))+
@@ -281,6 +304,20 @@ prop.table(table(heart_dataframe$HeartDisease))
 
 #Within the data set ~55.3% have heart disease and ~44.7% do not. Which is nearly a balanced dataset. 
 ```
+
+
+
+#Correlation Matrix of only numeric varibales by subsetting heart_dataframe
+```{r}
+heart_numeric <- select_if(heart_dataframe, is.numeric)
+heart_numeric
+heart_numcor <- cor(heart_numeric, use = "complete")
+heart_numcor
+corrplot(heart_numcor, method = "circle")
+```
+
+
+
 
 #Data conversion to all numeric to obtain a complete correlation matrix and correlation plot 
 ```{r}
