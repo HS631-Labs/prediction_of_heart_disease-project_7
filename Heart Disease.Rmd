@@ -1,6 +1,6 @@
 ---
 title: "Heart Disease"
-author: "Shannon Walsh"
+author: "Sejal-Shannon"
 date: "11/1/2022"
 output: html_document
 ---
@@ -318,7 +318,7 @@ corrplot(heart_numcor, method = "circle")
 
 #Data conversion to all numeric to obtain a complete correlation matrix and correlation plot 
 ```{r}
-heart_dfnum <- heart_dataframe
+heart_dfnum <- heart_dataframe # remove Heart Disease 
 
 #ST Slope
 heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "2"] <- "0"
@@ -451,6 +451,7 @@ ExAng_HD
 
 #Between ST segment depression induced by exercise and Heart Disease 
 #Note: ST segment depression less than 0.5 mm is accepted in all leads. ST segment depression 0.5 mm or more is considered pathological. 
+
 Oldpeak_HD <- ggplot(heart_dataframe, aes(x = Oldpeak, fill = HeartDisease, color = HeartDisease))+
           geom_histogram(binwidth = 0.5, color = "black") +
           facet_wrap(vars(HeartDisease))+
@@ -458,12 +459,14 @@ Oldpeak_HD <- ggplot(heart_dataframe, aes(x = Oldpeak, fill = HeartDisease, colo
           ylab(" Heart Disease")+
           ggtitle("ST depression induced by exercise and presence and absence of heart disease")
 Oldpeak_HD
-#Histrograms below show the relationship between distribution of ST segment depression induced by exercise and presence and absence of heart disease. 
+
+#Histograms below show the relationship between distribution of ST segment depression induced by exercise and presence and absence of heart disease. 
 #Note: ST segment depression less than 0.5 mm is accepted in all leads. ST segment depression 0.5 mm or more is considered pathological. 
 #ST segment depression distribution in subjects without heart disease(Health) is positively skewed with majority subjects at 0.0 depression. 
 #However, the distribution in subjects with heart disease shows significant number of subjects with ST segment depression >0.5 which is considered pathological. 
 
 #Distribution of chest pain types in presence vs absence of heart disease
+
 CPT_HD <- ggplot(heart_dataframe, aes( x = HeartDisease, fill = ChestPainType))+
   geom_bar(position = "dodge")+
   xlab(" Heart Disease")+
