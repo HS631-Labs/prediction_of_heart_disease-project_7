@@ -139,9 +139,9 @@ stat.desc(heart_dataframe$Age, basic = FALSE, norm = TRUE)
 shapiro.test(heart_dataframe$Age) #confirms data is not normally distributed 
 
 #Correct for moderate negative new using sqrt 
-sq_age <- sqrt((max(heart_dataframe$Age)+1) - heart_dataframe$Age) 
-sq_age
-sq_age_hist <- hist(sq_age)
+sqrt_age <- sqrt((max(heart_dataframe$Age)+1) - heart_dataframe$Age) 
+sqrt_age
+sqrt_age_hist <- hist(sq_age)
 
 #CHOLESTEROL 
 cholesterol_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Cholesterol, fill = heart_dataframe$Cholesterol, na.rm = TRUE))+
@@ -163,16 +163,16 @@ shapiro.test(heart_dataframe$Cholesterol)
 
 #log transformation to correct positive skew 
 log_cholesterol <- log(heart_dataframe$Cholesterol)
-log_Chol_hist <- hist(log_cholesterol, main = "Distribution of Serum Cholestrol Levels in mg/dl")
+log_chol_hist <- hist(log_cholesterol, main = "Distribution of Serum Cholestrol Levels in mg/dl")
 
 
 #RESTING BLOOD PRESSURE 
-BP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingBP, fill = heart_dataframe$RestingBP, na.rm = TRUE))+
+RBP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingBP, fill = heart_dataframe$RestingBP, na.rm = TRUE))+
   geom_histogram(color = "Black", fill = "brown")+
   xlab("Blood Pressure is mmHg")+
   ylab("count")+
   ggtitle("Distribution of Resting Blood Pressure Readings")
-BP_distribution 
+RBP_distribution 
 
 describe(heart_dataframe$RestingBP)
 stat.desc(heart_dataframe$RestingBP, basic = FALSE, norm = TRUE)
@@ -184,24 +184,20 @@ log_RBP_hist <- hist(log_RBP, main= "Distribution of Resting BP in mmHg")
 
 
 #MAXIMUM HEART RATE 
-HR_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$MaxHR, fill = heart_dataframe$MaxHR))+
+MHR_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$MaxHR, fill = heart_dataframe$MaxHR))+
   geom_histogram(color = "Black", fill = "darkorchid1")+
   xlab("Maximum Heart Rate in bpm")+
   ylab("count")+
   ggtitle("Distribution of Maximum Heart Rate across database")
-HR_distribution 
+MHR_distribution 
 
+#Distribution appears to be nearly normally distributed. 
 describe(heart_dataframe$MaxHR)
 stat.desc(heart_dataframe$MaxHR, basic = FALSE, norm = TRUE)
 shapiro.test(heart_dataframe$MaxHR)
 
-#Data is slightly Negatively skewed. Majority of the subjects' MaxHR falls 125-150bpm and data is Leptokurtik with kurtosis of -4.6 i.e. Heavy tailed with values father from mean.  
 
-#apply reverse score transformation, use sqrt to correct  for moderately skewed data  
-max_MHR <-  max(heart_dataframe$MaxHR)  
-all_maxHR <- heart_dataframe$MaxHR
-sqrt_MaxHR <- sqrt((max_MHR +1) - all_maxHR)
-rev_MHR_hist <- hist(sqrt_MaxHR)
+
 
 #OLD PEAK 
 Oldpeak_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Oldpeak, fill = heart_dataframe$Oldpeak))+
@@ -220,14 +216,14 @@ shapiro.test(heart_dataframe$Oldpeak)  #confirms data is not normally distribute
 #Inverse data to correct for severe positive skew 
 inv_oldpeak <- 1/(heart_dataframe$Oldpeak) 
 hist(inv_oldpeak)
+
+
 ```
 
 #Chunk 7: Characterizing distributions of FACTOR variables   
 Bar plots used for factor variables and Histograms for continuous variables. 
 ```{r}
-
-
-#Sex
+#SEX
 gender_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Sex, fill = heart_dataframe$Sex))+
   geom_bar()+
   xlab("Gender")+
@@ -235,9 +231,10 @@ gender_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Sex, fill
   ggtitle("Distribution of Gender")+
   scale_fill_discrete(name = "Gender", labels = c("Female","Male"))
 gender_distribution
+
 #Data set contains significantly higher number of males(700) compared to females (200)
 
-#Chest Pain Types
+#CHEST PAIN TYPES 
 CP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ChestPainType, fill = heart_dataframe$ChestPainType))+
   geom_bar()+
   xlab("Types of Chest Pain")+
@@ -255,16 +252,16 @@ pie(cp_table, labels = labels2, col = c("azure1", "azure2", "azure3", "azure4"),
 
 #Atypical Angina is the most observed 
 
-#Fasting blood sugar 
-BS_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$FastingBS, fill = heart_dataframe$FastingBS))+
+#FASTING BLOOD SUGAR LEVLS
+FBS_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$FastingBS, fill = heart_dataframe$FastingBS))+
   geom_bar()+
   xlab("Fasting Blood Sugar Levels in mg/dl")+
   ylab("count")+
   ggtitle("Distribution of Fasting Blood Sugar Levels")+
   scale_fill_discrete(name = "Blood Sugar Levels", labels = c(">120 mg/dl","<120 mg/dl"))
-BS_distribution
+FBS_distribution
 
-#Resting ECG
+#RESTING ECG
 ECG_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingECG, fill = heart_dataframe$RestingECG))+
   geom_bar()+
   xlab("Resting ECG Results")+
@@ -274,7 +271,7 @@ ECG_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingECG, 
 ECG_distribution
 
 
-#Exercise induced angina
+#EXERCISE INDUCED ANGINA
 Exangina_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ExerciseAngina, fill = heart_dataframe$ExerciseAngina))+
   geom_bar()+
   xlab("presence or absence of exercise induced angina ")+
@@ -292,17 +289,17 @@ ST_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ST_Slope, fil
   scale_fill_discrete(name = "ST Slopes", labels = c("Down", "Flat", "Up"))
 ST_distribution
 
-#Heart disease 
-heartdisease_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$HeartDisease, fill = heart_dataframe$HeartDisease))+
+#HEART DISEASE
+HD_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$HeartDisease, fill = heart_dataframe$HeartDisease))+
   geom_bar()+
   xlab("Heart Disease")+
   ylab("count")+
   ggtitle("Presence and absence of heart disease")+
   scale_fill_discrete(name = "Heart Disease", labels = c("Absence", "presence"))
-heartdisease_distribution
+HD_distribution
 prop.table(table(heart_dataframe$HeartDisease)) 
 
-#Within the data set ~55.3% have heart disease and ~44.7% do not. Which is nearly a balanced dataset. 
+#Within the data set ~55.3% have heart disease and ~44.7% do not.
 ```
 
 
@@ -328,6 +325,7 @@ heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "2"] <- "0"
 heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "1"] <- "1"
 heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "3"] <- "2"
 heart_dfnum$ST_Slope <- as.numeric(heart_dfnum$ST_Slope)
+
 
 #sex
 heart_dfnum$Sex[heart_dfnum$Sex == "M"] <- "0"
@@ -360,18 +358,26 @@ heart_dfnum$ExerciseAngina[heart_dfnum$ExerciseAngina == "Y"] <- "1"
 heart_dfnum$ExerciseAngina <- as.numeric(heart_dfnum$ExerciseAngina)
 
 
-#Heart Disease
-#heart_dfnum$HeartDisease[heart_dfnum$HeartDisease == "0"] <- "Health"
-#heart_dfnum$HeartDisease[heart_dfnum$HeartDisease == "1"] <- "Heart Disease"
-heart_dfnum$HeartDisease <- as.numeric(heart_dfnum$HeartDisease)
+heart_dfnum$HeartDisease <- as.factor(heart_dfnum$HeartDisease)
+
+
+log_dataframe <- data.frame(sq_age, log_cholesterol,log_RBP, sqrt_MaxHR, heart_dfnum$ST_Slope, heart_dfnum$Sex, heart_dfnum$ChestPainType, heart_dfnum$FastingBS,heart_dfnum$RestingECG, heart_dfnum$ExerciseAngina)
+str(log_dataframe)
+
 
 head(heart_dfnum,20)
 summary(heart_dfnum)
 str(heart_dfnum)
 
-heart_cor <- cor(heart_dfnum, use = "complete.obs")
-heart_cor
-corrplot(heart_cor, method = "square")
+heart_allnum_cor <- cor(heart_dfnum, use = "complete.obs")
+heart_allnum_cor 
+heart_allnum_corplot <- corrplot(heart_allnum_cor, method = "circle")
+
+heart_logcor <- cor(log_dataframe, use = "complete.obs")
+heart_logcor
+heart_logcorplot <- corrplot(heart_logcor, method = "square")
+
+
 ```
 
 
@@ -474,19 +480,8 @@ CPT_HD
 
 
 
-#Logistical Regression
-```{r}
-#MHR_HD_fit <- lm( HeartDisease ~ MaxHR, data = heart_dataframe) 
-#MHR_HD_fit
-#summary(MHR_HD_fit)
-# y = 148 -20.50*x
-#F statistic = MSM/MSR = 174.9 
-#Yes, the result obtained is statistically significant. This can be said because p value (< 2.2e-16) is less than alpha 0.05. Hence we can reject the null hypothesis that there is no correlation between MaxHR and presence and absence of heart disease. Which allows us to accept the Alternative Hypothesis that a correlation exists between insulin and fatty acid levels. Due to above reasons we can say that the probability that we obtain a regression line that fits this well is NOT by  random chance. 
 
-#RBP_HD_fit <- lm( HeartDisease ~ RestingBP, data = heart_dataframe) 
-#RBP_HD_fit
-#summary(RBP_HD_fit)
-```
+
 
 
 
