@@ -304,21 +304,22 @@ prop.table(table(heart_dataframe$HeartDisease))
 
 
 
-#Correlation Matrix of only numeric varibales by subsetting heart_dataframe
+#Chunk 8: Correlation Matrix of only numeric varibales by subsetting heart_dataframe
 ```{r}
 heart_numeric <- select_if(heart_dataframe, is.numeric)
 heart_numeric
 heart_numcor <- cor(heart_numeric, use = "complete")
 heart_numcor
 corrplot(heart_numcor, method = "circle")
+str(heart_dataframe)
 ```
 
 
 
 
-#Data conversion to all numeric to obtain a complete correlation matrix and correlation plot 
+#Chunk 9: Data conversion to all numeric to obtain a complete correlation matrix and correlation plot 
 ```{r}
-heart_dfnum <- heart_dataframe # remove Heart Disease 
+heart_dfnum <- subset(heart_dataframe, select = -c(HeartDisease))
 
 #ST Slope
 heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "2"] <- "0"
@@ -357,10 +358,6 @@ heart_dfnum$ExerciseAngina[heart_dfnum$ExerciseAngina == "N"] <-"0"
 heart_dfnum$ExerciseAngina[heart_dfnum$ExerciseAngina == "Y"] <- "1"
 heart_dfnum$ExerciseAngina <- as.numeric(heart_dfnum$ExerciseAngina)
 
-
-heart_dfnum$HeartDisease <- as.factor(heart_dfnum$HeartDisease)
-
-
 log_dataframe <- data.frame(sq_age, log_cholesterol,log_RBP, sqrt_MaxHR, heart_dfnum$ST_Slope, heart_dfnum$Sex, heart_dfnum$ChestPainType, heart_dfnum$FastingBS,heart_dfnum$RestingECG, heart_dfnum$ExerciseAngina)
 str(log_dataframe)
 
@@ -377,13 +374,12 @@ heart_logcor <- cor(log_dataframe, use = "complete.obs")
 heart_logcor
 heart_logcorplot <- corrplot(heart_logcor, method = "square")
 
-
 ```
 
 
 
 
-#Correlation graphs: Age and Lab Values VS Heart Disease 
+#Chunk 10: Correlation graphs: Age and Lab Values VS Heart Disease 
 ```{r}
 #Between Heart Disease and Age 
 age_HD <- ggplot(heart_dataframe, aes(x = Age, fill = HeartDisease, color = HeartDisease))+
@@ -436,7 +432,7 @@ FBS_HD
 ```
 
 
-#Correlation: Cardiovascular events and Heart Disease 
+#Chunk 11: Correlation: Cardiovascular events and Heart Disease 
 ```{r}
 #Between Exercise induced angina and presence and absence of heart disease
 ExAng_HD <- FBS_HD <- ggplot(heart_dataframe, aes(x = ExerciseAngina, fill = HeartDisease))+
