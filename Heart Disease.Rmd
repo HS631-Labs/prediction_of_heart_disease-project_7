@@ -198,7 +198,6 @@ shapiro.test(heart_dataframe$MaxHR)
 
 
 
-
 #OLD PEAK 
 Oldpeak_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Oldpeak, fill = heart_dataframe$Oldpeak))+
   geom_histogram(color = "Black", fill = "cadetblue")+
@@ -358,7 +357,10 @@ heart_dfnum$ExerciseAngina[heart_dfnum$ExerciseAngina == "N"] <-"0"
 heart_dfnum$ExerciseAngina[heart_dfnum$ExerciseAngina == "Y"] <- "1"
 heart_dfnum$ExerciseAngina <- as.numeric(heart_dfnum$ExerciseAngina)
 
-log_dataframe <- data.frame(sq_age, log_cholesterol,log_RBP, sqrt_MaxHR, heart_dfnum$ST_Slope, heart_dfnum$Sex, heart_dfnum$ChestPainType, heart_dfnum$FastingBS,heart_dfnum$RestingECG, heart_dfnum$ExerciseAngina)
+#OldPeak 
+
+
+log_dataframe <- data.frame(sq_age, log_cholesterol,log_RBP, heart_dataframe$MaxHR, heart_dfnum$ST_Slope, heart_dfnum$Sex, heart_dfnum$ChestPainType, heart_dfnum$FastingBS,heart_dfnum$RestingECG, heart_dfnum$ExerciseAngina, heart)
 str(log_dataframe)
 
 
@@ -469,7 +471,6 @@ CPT_HD <- ggplot(heart_dataframe, aes( x = HeartDisease, fill = ChestPainType))+
   ylab("Type of Chest Pain")+
   ggtitle("Distribution of chest pain types in presence vs absence of heart disease")
 CPT_HD
-
 
 ```
 
