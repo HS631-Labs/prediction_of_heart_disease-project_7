@@ -123,35 +123,31 @@ str(heart_dataframe)
 #Histograms for continuous integer/dbl variables 
 
 #AGE
-qqplot_Age<- qplot(sample = heart_dataframe$Age)+
-xlab("Age in years")+
-ylab("count")
-qqplot_Age
-#qqplot o/p indicates age of subjects are normally distributed.
-
 age_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Age, fill = heart_dataframe$Age, na.rm = TRUE))+
   geom_histogram(color = "Black", fill = "Chocolate")+
   xlab("Age in years")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of Age in database")
 age_distribution 
-#Age of majority of subjects falls between 50-60years. Plot shows a very slight negative skew. 
 
-describe (heart_dataframe$Age)
-stat.desc(heart_dataframe$Age, basic = FALSE, norm = TRUE)
-shapiro.test(heart_dataframe$Age) 
+qqplot_Age<- qplot(sample = heart_dataframe$Age)+
+xlab("Age in years")+
+ylab("frequency")
+qqplot_Age
+#qqplot o/p indicates age of subjects are normally distributed.
+
 
 #CHOLESTEROL 
 cholesterol_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Cholesterol, fill = heart_dataframe$Cholesterol, na.rm = TRUE))+
-  geom_histogram(color = "Black", fill = "Chocolate")+
+  geom_histogram(color = "Black", fill = "azure2")+
   xlab("Serum Cholesterol Levels in mg/dl")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of Serum Cholesterol Levels across database")
 cholesterol_distribution 
 
 qqplot_cholesterol<- qplot(sample = heart_dataframe$Cholesterol, na.rm = TRUE)+
 xlab("Serum Cholesterol Levels in mg/dl")+
-ylab("count")
+ylab("frequency")
 qqplot_cholesterol
 
 describe(heart_dataframe$Cholesterol)
@@ -161,15 +157,13 @@ shapiro.test(heart_dataframe$Cholesterol)
 
 #log transformation to correct positive skew 
 log_cholesterol <- log(heart_dataframe$Cholesterol)
-
-log_chol_hist <- hist(log_cholesterol, main = "Distribution of Serum Cholestrol Levels in mg/dl")
-
+log_RBP_hist <- hist(log_cholesterol, col = "azure2", border = "black", main = "Distribution of Serum Cholesterol Levels(transformed)", xlab = "Serum Cholesterol Levels in mg/dl", ylab = "frequency")
 
 #RESTING BLOOD PRESSURE 
 RBP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingBP, fill = heart_dataframe$RestingBP, na.rm = TRUE))+
   geom_histogram(color = "Black", fill = "brown")+
   xlab("Blood Pressure is mmHg")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of Resting Blood Pressure Readings")
 RBP_distribution 
 
@@ -179,14 +173,13 @@ shapiro.test(heart_dataframe$RestingBP)
 
 #log transformation to correct skew
 log_RBP <- log(heart_dataframe$RestingBP)
-log_RBP_hist <- hist(log_RBP, main= "Distribution of Resting BP in mmHg")
-
+log_RBP_hist <- hist(log_RBP, col = "brown", border = "black", main = "Distribution of Resting Blood Pressure Readings(transformed)", xlab = "Resting Blood Pressure in mmHg", ylab = "frequency")
 
 #MAXIMUM HEART RATE 
 MHR_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$MaxHR, fill = heart_dataframe$MaxHR))+
   geom_histogram(color = "Black", fill = "darkorchid1")+
   xlab("Maximum Heart Rate in bpm")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of Maximum Heart Rate across database")
 MHR_distribution 
 
@@ -201,20 +194,25 @@ shapiro.test(heart_dataframe$MaxHR)
 Oldpeak_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Oldpeak, fill = heart_dataframe$Oldpeak))+
   geom_histogram(color = "Black", fill = "cadetblue")+
   xlab("Oldpeak - ST depression induced by exercise relative to rest")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of ST depression induced by exercise relative to rest")
 Oldpeak_distribution #Positively skewed data 
 
+qqplot_oldpeak<- qplot(sample = heart_dataframe$Oldpeak, na.rm = TRUE)+
+xlab("Oldpeak - ST depression induced by exercise relative to rest")+
+ylab("frequency")
+qqplot_oldpeak
 
 describe(heart_dataframe$Oldpeak)
 stat.desc(heart_dataframe$Oldpeak, basic = FALSE, norm = TRUE)
-
 shapiro.test(heart_dataframe$Oldpeak)  #confirms data is not normally distributed. 
 
 #log to correct for severe positive skew 
 log_oldpeak <- log(heart_dataframe$Oldpeak)
 log_oldpeak
-hist(log_oldpeak)
+log_oldpeak_hist <- hist(log_oldpeak, col = "cadetblue", border = "black", main = "Distribution of ST depression induced by exercise relative to rest(transformed)", xlab = "Oldpeak - ST depression induced by exercise relative to rest", ylab = "frequency")
+
+
 ```
 
 #Chunk 7: Characterizing distributions of FACTOR variables   
@@ -224,7 +222,7 @@ Bar plots used for factor variables and Histograms for continuous variables.
 gender_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Sex, fill = heart_dataframe$Sex))+
   geom_bar()+
   xlab("Gender")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of Gender")+
   scale_fill_discrete(name = "Gender", labels = c("Female","Male"))
 gender_distribution
@@ -235,7 +233,7 @@ gender_distribution
 CP_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ChestPainType, fill = heart_dataframe$ChestPainType))+
   geom_bar()+
   xlab("Types of Chest Pain")+
-  ylab("Count")+
+  ylab("frequency")+
   ggtitle("Distribution of Types of Chest Pain")+
   scale_fill_discrete(name = "Types of Chest Pain", labels = c("Asymptomatic", "Atypica", "Non-Anginal", "Typical"))
 CP_distribution
@@ -253,7 +251,7 @@ pie(cp_table, labels = labels2, col = c("azure1", "azure2", "azure3", "azure4"),
 FBS_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$FastingBS, fill = heart_dataframe$FastingBS))+
   geom_bar()+
   xlab("Fasting Blood Sugar Levels in mg/dl")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of Fasting Blood Sugar Levels")+
   scale_fill_discrete(name = "Blood Sugar Levels", labels = c(">120 mg/dl","<120 mg/dl"))
 FBS_distribution
@@ -262,7 +260,7 @@ FBS_distribution
 ECG_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$RestingECG, fill = heart_dataframe$RestingECG))+
   geom_bar()+
   xlab("Resting ECG Results")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of Resting ECG Results")+
   scale_fill_discrete(name = "ECG Results", labels = c("Normal", "ST", "LVH"))
 ECG_distribution
@@ -272,7 +270,7 @@ ECG_distribution
 Exangina_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ExerciseAngina, fill = heart_dataframe$ExerciseAngina))+
   geom_bar()+
   xlab("presence or absence of exercise induced angina ")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Presence or Absence of Exercise Induced Angina")+
   scale_fill_discrete(name = "Exercise Induced Angina", labels = c("Absence","Presence"))
 Exangina_distribution
@@ -281,7 +279,7 @@ Exangina_distribution
 ST_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$ST_Slope, fill = heart_dataframe$ST_Slope))+
   geom_bar()+
   xlab("ST Slope nature")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Distribution of nature of the ST Slopes")+
   scale_fill_discrete(name = "ST Slopes", labels = c("Down", "Flat", "Up"))
 ST_distribution
@@ -290,7 +288,7 @@ ST_distribution
 HD_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$HeartDisease, fill = heart_dataframe$HeartDisease))+
   geom_bar()+
   xlab("Heart Disease")+
-  ylab("count")+
+  ylab("frequency")+
   ggtitle("Presence and absence of heart disease")+
   scale_fill_discrete(name = "Heart Disease", labels = c("Absence", "presence"))
 HD_distribution
