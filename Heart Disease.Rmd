@@ -21,15 +21,8 @@ library(tidyverse)
 library(pastecs)
 library(dbplyr)
 library(Hmisc)
-library(scales)
-#library(ROSE)
 library(corrplot)
 library(pscl)
-library(DT)
-library(caret)
-library(varImp)
-library(gridBase)
-library(gridExtra)
 library(AER)
 library(robust)
 library(ROCit)
@@ -118,6 +111,8 @@ head(heart_dataframe$HeartDisease,20)
 summary(heart_dataframe)
 str(heart_dataframe)
 ```
+
+
 #Chunk 6: Characterizing distributions of NUMERIC variables and correcting for skew
 ```{r}
 #Histograms for continuous integer/dbl variables 
@@ -309,11 +304,14 @@ corrplot(heart_numcor, method = "circle")
 str(heart_dataframe)
 ```
 
+
+
+
 #Chunk 9: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
 ```{r}
 heart_dfnum <- subset(heart_dataframe, select = -c(HeartDisease))
-colnames(heart_dfnum) <- c("Age", "Cholesterol", "Resting Blood Pressure", "Old Peak", "Max Heart Rate" , "ST Slope", "Gender","Types of Chest Pain", "Fasting Blood Sugar Levels", "Resting ECG", "Exercise Induced Angina" )
 
+#YN_HeartDisease, YN_HeartDisease_bin
 #ST Slope
 heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "2"] <- "0"
 heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "1"] <- "1"
@@ -367,6 +365,7 @@ heart_logcor
 heart_logcorplot <- corrplot(heart_logcor, method = "square", order = "alphabet", tl.cex = 0.7)
 
 ```
+
 
 #Chunk 10: Correlation graphs: Age and Lab Values VS Heart Disease 
 ```{r}
@@ -460,8 +459,6 @@ CPT_HD <- ggplot(heart_dataframe, aes( x = HeartDisease, fill = ChestPainType))+
 CPT_HD
 
 ```
-
-
 
 
 
