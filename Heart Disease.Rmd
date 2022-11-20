@@ -22,7 +22,7 @@ library(pastecs)
 library(dbplyr)
 library(Hmisc)
 library(scales)
-library(ROSE)
+#library(ROSE)
 library(corrplot)
 library(pscl)
 library(DT)
@@ -30,6 +30,9 @@ library(caret)
 library(varImp)
 library(gridBase)
 library(gridExtra)
+library(AER)
+library(robust)
+library(ROCit)
 ```
 
 #Chunk 2: Working directory 
@@ -111,7 +114,7 @@ heart_dataframe$HeartDisease[heart_dataframe$HeartDisease == "0"] <- "Health"
 heart_dataframe$HeartDisease[heart_dataframe$HeartDisease == "1"] <- "Heart Disease"
 heart_dataframe$HeartDisease <- as.factor(heart_dataframe$HeartDisease)
 
-head(heart_dataframe,20)
+head(heart_dataframe$HeartDisease,20)
 summary(heart_dataframe)
 str(heart_dataframe)
 ```
@@ -136,12 +139,7 @@ age_distribution
 
 describe (heart_dataframe$Age)
 stat.desc(heart_dataframe$Age, basic = FALSE, norm = TRUE)
-shapiro.test(heart_dataframe$Age) #confirms data is not normally distributed 
-
-#Correct for moderate negative new using sqrt 
-sqrt_age <- sqrt((max(heart_dataframe$Age)+1) - heart_dataframe$Age) 
-sqrt_age
-sqrt_age_hist <- hist(sq_age)
+shapiro.test(heart_dataframe$Age) 
 
 #CHOLESTEROL 
 cholesterol_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Cholesterol, fill = heart_dataframe$Cholesterol, na.rm = TRUE))+
@@ -163,6 +161,7 @@ shapiro.test(heart_dataframe$Cholesterol)
 
 #log transformation to correct positive skew 
 log_cholesterol <- log(heart_dataframe$Cholesterol)
+
 log_chol_hist <- hist(log_cholesterol, main = "Distribution of Serum Cholestrol Levels in mg/dl")
 
 
@@ -212,11 +211,10 @@ stat.desc(heart_dataframe$Oldpeak, basic = FALSE, norm = TRUE)
 
 shapiro.test(heart_dataframe$Oldpeak)  #confirms data is not normally distributed. 
 
-#Inverse data to correct for severe positive skew 
-inv_oldpeak <- 1/(heart_dataframe$Oldpeak) 
-hist(inv_oldpeak)
-
-
+#log to correct for severe positive skew 
+log_oldpeak <- log(heart_dataframe$Oldpeak)
+log_oldpeak
+hist(log_oldpeak)
 ```
 
 #Chunk 7: Characterizing distributions of FACTOR variables   
@@ -307,18 +305,16 @@ prop.table(table(heart_dataframe$HeartDisease))
 ```{r}
 heart_numeric <- select_if(heart_dataframe, is.numeric)
 heart_numeric
-heart_numcor <- cor(heart_numeric, use = "complete")
+heart_numcor <- cor(heart_numeric, use = "complete", method = "spearman")
 heart_numcor
 corrplot(heart_numcor, method = "circle")
 str(heart_dataframe)
 ```
 
-
-
-
-#Chunk 9: Data conversion to all numeric to obtain a complete correlation matrix and correlation plot 
+#Chunk 9: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
 ```{r}
 heart_dfnum <- subset(heart_dataframe, select = -c(HeartDisease))
+colnames(heart_dfnum) <- c("Age", "Cholesterol", "Resting Blood Pressure", "Old Peak", "Max Heart Rate" , "ST Slope", "Gender","Types of Chest Pain", "Fasting Blood Sugar Levels", "Resting ECG", "Exercise Induced Angina" )
 
 #ST Slope
 heart_dfnum$ST_Slope[heart_dfnum$ST_Slope == "2"] <- "0"
@@ -341,9 +337,6 @@ heart_dfnum$ChestPainType[heart_dfnum$ChestPainType == "ASY"] <- "3"
 heart_dfnum$ChestPainType <- as.numeric(heart_dfnum$ChestPainType)
 
 
-#FastingBS 
-#heart_dfnum$FastingBS[heart_dfnum$FastingBS == 0] <- "Low  (<120 mg/dl)"
-#heart_dfnum$FastingBS[heart_dfnum$FastingBS == 1] <- "High (>120 mg/dl)"
 heart_dfnum$FastingBS <- as.numeric(heart_dfnum$FastingBS)
 
 #RestingECG
@@ -357,11 +350,10 @@ heart_dfnum$ExerciseAngina[heart_dfnum$ExerciseAngina == "N"] <-"0"
 heart_dfnum$ExerciseAngina[heart_dfnum$ExerciseAngina == "Y"] <- "1"
 heart_dfnum$ExerciseAngina <- as.numeric(heart_dfnum$ExerciseAngina)
 
-#OldPeak 
 
-
-log_dataframe <- data.frame(sq_age, log_cholesterol,log_RBP, heart_dataframe$MaxHR, heart_dfnum$ST_Slope, heart_dfnum$Sex, heart_dfnum$ChestPainType, heart_dfnum$FastingBS,heart_dfnum$RestingECG, heart_dfnum$ExerciseAngina, heart)
+log_dataframe <- data.frame(heart_dataframe$Age, log_cholesterol,log_RBP, log_oldpeak, heart_dataframe$MaxHR, heart_dfnum$ST_Slope, heart_dfnum$Sex, heart_dfnum$ChestPainType, heart_dfnum$FastingBS,heart_dfnum$RestingECG, heart_dfnum$ExerciseAngina)
 str(log_dataframe)
+colnames(log_dataframe) <- c("Age", "Cholesterol", "Resting Blood Pressure", "Old Peak", "Max Heart Rate" , "ST Slope", "Gender","Types of Chest Pain", "Fasting Blood Sugar Levels", "Resting ECG", "Exercise Induced Angina" )
 
 
 head(heart_dfnum,20)
@@ -370,16 +362,13 @@ str(heart_dfnum)
 
 heart_allnum_cor <- cor(heart_dfnum, use = "complete.obs")
 heart_allnum_cor 
-heart_allnum_corplot <- corrplot(heart_allnum_cor, method = "circle")
+heart_allnum_corplot <- corrplot(heart_allnum_cor, method = "circle", order = "alphabet", tl.cex = 0.7)
 
-heart_logcor <- cor(log_dataframe, use = "complete.obs")
+heart_logcor <- cor(log_dataframe, use = "complete.obs", method = "spearman")
 heart_logcor
-heart_logcorplot <- corrplot(heart_logcor, method = "square")
+heart_logcorplot <- corrplot(heart_logcor, method = "square", order = "alphabet", tl.cex = 0.7)
 
 ```
-
-
-
 
 #Chunk 10: Correlation graphs: Age and Lab Values VS Heart Disease 
 ```{r}
@@ -473,13 +462,6 @@ CPT_HD <- ggplot(heart_dataframe, aes( x = HeartDisease, fill = ChestPainType))+
 CPT_HD
 
 ```
-
-
-
-
-
-
-
 
 
 
