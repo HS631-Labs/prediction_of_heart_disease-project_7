@@ -294,20 +294,7 @@ prop.table(table(heart_dataframe$HeartDisease))
 
 
 
-#Chunk 8: Correlation Matrix of only numeric varibales by subsetting heart_dataframe
-```{r}
-heart_numeric <- select_if(heart_dataframe, is.numeric)
-heart_numeric
-heart_numcor <- cor(heart_numeric, use = "complete", method = "spearman")
-heart_numcor
-corrplot(heart_numcor, method = "circle")
-str(heart_dataframe)
-```
-
-
-
-
-#Chunk 9: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
+#Chunk 8: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
 ```{r}
 heart_dfnum <- subset(heart_dataframe, select = -c(HeartDisease))
 
@@ -355,11 +342,23 @@ colnames(log_dataframe) <- c("Age", "Cholesterol", "Resting Blood Pressure", "Ol
 head(heart_dfnum,20)
 summary(heart_dfnum)
 str(heart_dfnum)
+```
+ 
+#Chunk 9: Correlation Matrix and Plots 
+```{r}
+#originally numeric variables only 
+heart_numeric_log <- select_if(log_dataframe, is.numeric)
+heart_numeric_log
+heart_numcor_log <- cor(heart_numeric, use = "complete", method = "spearman")
+heart_numcor_log
+corrplot(heart_numcor_log, method = "circle")
 
+#all variables to numeric (except Outcome Variable) 
 heart_allnum_cor <- cor(heart_dfnum, use = "complete.obs")
 heart_allnum_cor 
 heart_allnum_corplot <- corrplot(heart_allnum_cor, method = "circle", order = "alphabet", tl.cex = 0.7)
 
+#All - transformed 
 heart_logcor <- cor(log_dataframe, use = "complete.obs", method = "spearman")
 heart_logcor
 heart_logcorplot <- corrplot(heart_logcor, method = "square", order = "alphabet", tl.cex = 0.7)
