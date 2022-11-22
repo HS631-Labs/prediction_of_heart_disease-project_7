@@ -459,7 +459,51 @@ CPT_HD <- ggplot(heart_dataframe, aes( x = HeartDisease, fill = ChestPainType))+
 CPT_HD
 
 ```
+#Chunk 12.0: Logistic Regression - PsurdoR initiation
+```{r}
+#pseudoR calculation function for later use 
+logisticPseudoR2s <- function(LogModel) {
+  dev <- LogModel$deviance 
+  nullDev <- LogModel$null.deviance 
+  modelN <-  length(LogModel$fitted.values)
+  R.l <-  1 -  dev / nullDev
+  R.cs <- 1- exp ( -(nullDev - dev) / modelN)
+  R.n <- R.cs / ( 1 - ( exp (-(nullDev / modelN))))
+  cat("Pseudo R^2 for logistic regression\n")
+  cat("Hosmer and Lemeshow R^2  ", round(R.l, 3), "\n")
+  cat("Cox and Snell R^2        ", round(R.cs, 3), "\n")
+  cat("Nagelkerke R^2           ", round(R.n, 3),    "\n")
+}
+```
 
+#Chunk 12.1: Logistic Regression 
+```{r}
+summary(heart_dataframe)
+table(heart_dataframe$HeartDisease)
+prop.table(table(heart_dataframe$HeartDisease)) 
+#55.34% have heart disease (508/918)
+```
+#Chunk 12.2 : Logistic Regression: Thresholding Outcome Variable HeartDisease and conversion to factor 
+```{r}
+#assigning threshold to Heart Disease 
+heart_dataframe$YN_HeartDisease[heart_dataframe$HeartDisease == "Health"] <- "0"
+heart_dataframe$YN_HeartDisease[heart_dataframe$HeartDisease == "Heart Disease"] <- "1"
+table(heart_dataframe$YN_HeartDisease)
+str(heart_dataframe$YN_HeartDisease)
+
+heart_dataframe$YN_HeartDisease_bin <- as.factor(heart_dataframe$YN_HeartDisease)
+
+heart_dataframe$YN_HeartDisease <- factor(heart_dataframe$YN_HeartDisease, levels = c(0,1), labels = c("Absence", "Presence"))
+
+table(heart_dataframe$YN_HeartDisease)
+str(heart_dataframe)
+```
+
+#Chunk 12.3: Logistic Regression - Building Model 1 = model1_full
+```{r}
+model1_full <- glm(YN_HeartDisease ~ Age + Sex + ChestPainType + RestingBP + Cholesterol+ FastingBS+RestingECG+ MaxHR+ ExerciseAngina+Oldpeak+ ST_Slope, data= heart_dataframe, family=binomial())
+summary(model1_full)
+```
 
 
 
