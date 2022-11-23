@@ -293,6 +293,10 @@ prop.table(table(heart_dataframe$HeartDisease))
 #Within the data set ~55.3% have heart disease and ~44.7% do not.
 ```
 
+#Chunk: BIAS ANALYSIS 
+```{r}
+
+```
 
 
 #Chunk 8: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
