@@ -504,5 +504,84 @@ model1_full <- glm(YN_HeartDisease ~ Age + Sex + ChestPainType + RestingBP + Cho
 summary(model1_full)
 ```
 
+#Chunk 12.4: Logistic Regression - Model 2(with significant variables only )
+```{r}
+#model 2 - no interactions
+model2.0_reduced <- glm(YN_HeartDisease ~ Sex + ChestPainType + FastingBS + ExerciseAngina+Oldpeak+ ST_Slope,  data = heart_dataframe, family=binomial())
+model2.0_reduced
+
+coef(model2.0_reduced)
+exp(coef(model2.0_reduced))
+#Odds of Heart Disease Increases by a factor of 2.72  with every event of presence of Exercise Angina while holding rest constant.  
+#Odds of Heart Disease Increased by a factor of 3.55 for every unit increase in ST_Slope(Flat) ??? while holding rest constant 
+#Odds of Heart Disease increases by a factor of 1.45 for every unit of depression in ST segment induced by exercise (Oldpeak) 
+#Odds of Heart Disease increases by a factor of 4.99 for subject being a Male while holding the rest constant. 
+
+
+
+#model 2 
+model2_reduced <- glm(YN_HeartDisease ~ Sex + ChestPainType + FastingBS + ExerciseAngina+Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heart_dataframe, family=binomial())
+model2_reduced
+summary(model2_reduced) 
+
+coef(model2_reduced)
+exp(coef(model2_reduced))
+
+ 
+
+```
+# Chunk 12.5: Removing Outliers for Model 3 
+```{r}
+#find outliers 
+cooksd <- cooks.distance(model2_reduced)
+cooksd
+plot(cooksd, pch = "*", cex = 2) 
+
+outlier <- c()
+
+for (i in cooksd){
+  if((is.na(i)== FALSE & i > (4/nrow(heart_dataframe))))
+    {outlier <- append(outlier, i)
+  }
+}
+
+length(outlier)
+outlier_index <- which(cooksd %in% outlier)
+outlier_index
+
+heart_no_outlier <- heart_dataframe[-outlier_index,]
+heart_no_outlier
+nrow(heart_no_outlier)
+
+```
+
+#Chunk 12.6:  Logistic Regression Model 3: 
+```{r}
+heartdf_no_outlier <- data.frame(heart_no_outlier)
+head(heartdf_no_outlier)
+model3 <- glm(YN_HeartDisease ~ Sex + ChestPainType + FastingBS + ExerciseAngina+Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
+model2_reduced
+summary(model3) 
+
+coef(model3)
+exp(coef(model3))
+```
+
+#Chunk 13: Comparing  model 1 & 2 performance - ANOVA 
+```{r}
+anova(model1_full, model2_reduced, test = "Chisq") 
+
+#Model2_reduced has the significant p value p = 3.459e-05, suggests that model with significant predictors and their interactions fits better than model with all predictors. 
+```
+
+#Chunk 13.1: Comparing model2 performace - Pseudo R2 and adjusted R2 
+```{r}
+R_square <- 1- model2_reduced$deviance/model2_reduced$null.deviance
+R_square
+
+adjust_R_square <- - 1-(model2_reduced$deviance-(ncol(heart_dataframe)-1))/model2_reduced$null.deviance
+adjust_R_square
+```
+
 
 
