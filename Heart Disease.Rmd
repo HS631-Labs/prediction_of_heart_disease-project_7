@@ -583,6 +583,8 @@ vif(model3.1)
 vif(model3.2)
 ```
 
+#HYPOTHESIS TESTING - Non-parametric 
+
 #Chunk 14: Comparing  model 1 & 2.1 and  2.1 & 2.2 performance - ANOVA 
 ```{r}
 anova(model1_full, model2.1_reduced, test = "Chisq")
@@ -604,7 +606,7 @@ pseudo_3.2 <- logisticPseudoR2s(model3.2) #model without outliers & significant 
 
 ```
 
-# Confusion matrix for  models 2.2_reduced and 3.2 using heart dataset with no outliers 
+# Chunk 14.2 Confusion matrix for  models 2.2_reduced and 3.2 using heart dataset with no outliers 
 ```{r}
 #model2.2_reduced with heartdf_no_outlier
 heartdf_no_outlier$predict_1 <- predict(model2.2_reduced, newdata=heartdf_no_outlier, type="response")
@@ -631,4 +633,16 @@ heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==0 & he
 table(heartdf_no_outlier$eval_2)#model3.2 with heartdf_no_outlier 
 ```
 
+#Chunk 14.3 ROC Curve 
+```{r}
+ROC_curve_model2.2 <- rocit(score=heartdf_no_outlier$predicted_YN_HeartDisease_1,class=heartdf_no_outlier$YN_HeartDisease_bin)
+plot(ROC_curve_model2.2)
+
+test_ROC_model2.2 = roc(heartdf_no_outlier$YN_HeartDisease_bin ~ heartdf_no_outlier$predict_1 , plot = TRUE, print.auc = TRUE)
+
+ROC_curve_model3.2 <- rocit(score=heartdf_no_outlier$predicted_YN_HeartDisease_2,class=heartdf_no_outlier$YN_HeartDisease_bin)
+plot(ROC_curve_model3.2)
+
+test_ROC_model3.2 = roc(heartdf_no_outlier$YN_HeartDisease_bin ~ heartdf_no_outlier$predict_2 , plot = TRUE, print.auc = TRUE)
+```
 
