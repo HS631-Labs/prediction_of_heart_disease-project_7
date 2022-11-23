@@ -554,19 +554,24 @@ heart_no_outlier <- heart_dataframe[-outlier_index,]
 heart_no_outlier
 nrow(heart_no_outlier)
 
-vif(model3)
 ```
 
 #Chunk 12.6:  Logistic Regression Model 3: 
 ```{r}
 heartdf_no_outlier <- data.frame(heart_no_outlier)
 head(heartdf_no_outlier)
-model3 <- glm(YN_HeartDisease ~ Sex + ChestPainType + FastingBS + ExerciseAngina+Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
-model2_reduced
+
+model3.1 <- glm(YN_HeartDisease ~ Sex + ChestPainType + Oldpeak+ ST_Slope + FastingBS + ExerciseAngina + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
+
+model3.2 <- glm(YN_HeartDisease ~ Sex + ChestPainType + Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
+
+model3.1
+model3.2
 summary(model3) 
 
 coef(model3)
 exp(coef(model3))
+vif(model3)
 ```
 
 #Chunk 13: Comparing  model 1 & 2 performance - ANOVA 
@@ -585,5 +590,14 @@ adjust_R_square <- - 1-(model2_reduced$deviance-(ncol(heart_dataframe)-1))/model
 adjust_R_square
 ```
 
+#chunk 13.2  PsuedoR2
+```{r}
+
+```
+
+ROC curve 
+```{r}
+
+```
 
 
