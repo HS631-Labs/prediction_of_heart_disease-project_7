@@ -596,7 +596,7 @@ anova(model2.1_reduced, model2.2_reduced, test = "Chisq")
 #chunk 14.1  compare models 2.2_reduced and 3.2 - PseudoR2
 ```{r}
 pseudo_2.2 <-  logisticPseudoR2s(model2.2_reduced) #model without significant predictors with high VIF 
-pseudo_3.2 <- logisticPseudoR2s(model3.2) #model without outliers and significant predictors with high VIF 
+pseudo_3.2 <- logisticPseudoR2s(model3.2) #model without outliers & significant predictors with high VIF 
 
 ```
 
@@ -612,20 +612,19 @@ heartdf_no_outlier$eval_1[heartdf_no_outlier$predicted_YN_HeartDisease_1==1 & he
 heartdf_no_outlier$eval_1[heartdf_no_outlier$predicted_YN_HeartDisease_1==0 & heartdf_no_outlier$YN_HeartDisease_bin ==1]="False Negative"
 heartdf_no_outlier$eval_1[heartdf_no_outlier$predicted_YN_HeartDisease_1==0 & heartdf_no_outlier$YN_HeartDisease_bin ==0]="True Negative"
 
-table(heartdf_no_outlier$eval_1)
+table(heartdf_no_outlier$eval_1) #model2.2_reduced with heartdf_no_outlier
 
 #model3.2 with heartdf_no_outlier 
 heartdf_no_outlier$predict_2 <- predict(model3.2, newdata=heartdf_no_outlier, type="response")
 
 heartdf_no_outlier$predicted_YN_HeartDisease_2 <- ifelse(heartdf_no_outlier$predict_2 > 0.5,1,0)
 
-
 heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==1 & heartdf_no_outlier$YN_HeartDisease_bin ==1]="True Positive"
 heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==1 & heartdf_no_outlier$YN_HeartDisease_bin ==0]="False Positive"
 heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==0 & heartdf_no_outlier$YN_HeartDisease_bin ==1]="False Negative"
 heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==0 & heartdf_no_outlier$YN_HeartDisease_bin ==0]="True Negative"
 
-table(heartdf_no_outlier$eval_2)
+table(heartdf_no_outlier$eval_2)#model3.2 with heartdf_no_outlier 
 ```
 
 
