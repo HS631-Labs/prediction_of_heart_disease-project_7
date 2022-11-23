@@ -26,6 +26,7 @@ library(pscl)
 library(AER)
 library(robust)
 library(ROCit)
+library(car)
 ```
 
 #Chunk 2: Working directory 
@@ -526,7 +527,7 @@ summary(model2_reduced)
 
 coef(model2_reduced)
 exp(coef(model2_reduced))
-
+vif(model2_reduced)
  
 
 ```
@@ -553,6 +554,7 @@ heart_no_outlier <- heart_dataframe[-outlier_index,]
 heart_no_outlier
 nrow(heart_no_outlier)
 
+vif(model3)
 ```
 
 #Chunk 12.6:  Logistic Regression Model 3: 
