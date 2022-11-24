@@ -295,9 +295,23 @@ prop.table(table(heart_dataframe$HeartDisease))
 
 #Chunk: BIAS ANALYSIS 
 ```{r}
+#bias analysis for gender distribution #Sampling Bias 
+table(heart_dataframe["Sex"])
+CI_gender <- (193-725)/(193+725)
+CI_gender #-0.58 
 
+
+#bias analysis - presence or absence of heart disease between gender groups (?)  
+#DPL = (qa - qd) 
+table(heart_dataframe$Sex, heart_dataframe$HeartDisease)
+
+qa <- (50/193)
+qd <- (458/725)
+qa
+qd
+DPL <- (qa-qd)
+DPL # -0.373 
 ```
-
 
 #Chunk 8: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
 ```{r}
