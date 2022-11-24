@@ -27,6 +27,10 @@ library(AER)
 library(robust)
 library(ROCit)
 library(car)
+#library(caret) # for model-building
+#library(DMwR) # for smote implementation - NOT AVAILABLE FOR THIS VersionR
+#library(purrr) # for functional programming (map)
+#library(pROC) 
 ```
 
 #Chunk 2: Working directory 
@@ -658,17 +662,6 @@ ROC_curve_model3.2 <- rocit(score=heartdf_no_outlier$predicted_YN_HeartDisease_2
 plot(ROC_curve_model3.2)
 
 test_ROC_model3.2 = roc(heartdf_no_outlier$YN_HeartDisease_bin ~ heartdf_no_outlier$predict_2 , plot = TRUE, print.auc = TRUE)
-```
-
-#Chunk 14.4 Class Imbalance
-```{r}
-# Use Class Imbalance and Difference in Proportions of Labels
-library(dplyr) # for data manipulation
-library(caret) # for model-building
-#library(DMwR) # for smote implementation - NOT AVAILABLE FOR THIS VersionR
-library(purrr) # for functional programming (map)
-library(pROC) # for AUC calculations
-#http://dpmartin42.github.io/posts/r/imbalanced-classes-part-1
 ```
 
 
