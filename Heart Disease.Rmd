@@ -672,3 +672,23 @@ dispersion_model3.2 #0.316
 #Absence of significant overdispersion. 
 ```
 
+#Chunk 15: Conclusion 
+```{r}
+model3.2 <- glm(YN_HeartDisease ~ Sex + ChestPainType + Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
+
+model3.2
+summary(model3.2)
+coef(model3.2)
+
+vif(model3.2)
+exp(coef(model3.2))
+confint(model3.2)
+
+#combining odds ratio and 97.5% CI 
+exp(cbind(OR = coef(model3.2), confint(model3.2)))
+
+#TENTATIVE CONCLUSION
+#For every unit change in interaction between Nature of ST Slope and Presence of Exercise Induced Angina there was a multiplication in the odds of presence of heart disease by a factor of 2.5. 
+```
+
+
