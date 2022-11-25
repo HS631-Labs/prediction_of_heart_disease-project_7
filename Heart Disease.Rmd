@@ -377,7 +377,7 @@ heart_numcor_log
 corrplot(heart_numcor_log, method = "circle")
 
 #all variables to numeric (except Outcome Variable) 
-heart_allnum_cor <- cor(heart_dfnum, use = "complete.obs")
+heart_allnum_cor <- cor(heart_dfnum, use = "complete.obs", method = "spearman")
 heart_allnum_cor 
 heart_allnum_corplot <- corrplot(heart_allnum_cor, method = "circle", order = "alphabet", tl.cex = 0.7)
 
@@ -664,5 +664,11 @@ plot(ROC_curve_model3.2)
 test_ROC_model3.2 = roc(heartdf_no_outlier$YN_HeartDisease_bin ~ heartdf_no_outlier$predict_2 , plot = TRUE, print.auc = TRUE)
 ```
 
+#Chunk 14.4: Overdispersion Chk. 
+```{r}
+dispersion_model3.2 <- deviance(model3.2)/df.residual(model3.2)
+dispersion_model3.2 #0.316
 
+#Absence of significant overdispersion. 
+```
 
