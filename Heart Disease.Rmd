@@ -296,6 +296,8 @@ prop.table(table(heart_dataframe$HeartDisease))
 
 #Chunk 8: BIAS ANALYSIS 
 ```{r}
+# Bias analysis is conducted in order to estimate the potential magnitude and direction of biases, and to quantify the uncertainty about these biases within training datasets. For our dataset, we applied class imbalance and DPL bias analysis. Class Imbalance bias occurs when facet value d (males) has fewer training samples compared to facet a (females). We used class imbalance to assess our gender distribution. Which we have already noted, features more males than females. After performing Class Imbalance Bias Analysis, a negative CI value was found. This indicates that facet d has more training samples in the dataset. In this case we did find a negative class imbalance value. 
+#bias analysis for gender distribution # Sampling Bias 
 #bias analysis for gender distribution #Sampling Bias 
 table(heart_dataframe["Sex"])
 CI_gender <- (193-725)/(193+725)
@@ -314,7 +316,22 @@ DPL <- (qa-qd)
 DPL # -0.373 
 ```
 
+<<<<<<< HEAD
 #Chunk 9: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
+=======
+```{r}
+#Bias Analysis - DPL 
+# Difference in Proportions of Labels or DPL compares the proportion of observed positive outcomes for facet d in proportion to the observed positive outcomes of facet a. A negative DPL value indicates that facet d has a higher proportion of positive outcomes when compared with facet a. We also found DPL to reflect a negative value. 
+qa <- (50/193)
+qd <- (458/725)
+qa
+qd
+DPL <- (qa-qd)
+DPL # -0.373 
+```
+
+#Chunk 8: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
+>>>>>>> origin
 ```{r}
 heart_dfnum <- subset(heart_dataframe, select = -c(HeartDisease))
 
