@@ -1,6 +1,6 @@
 ---
-title: "Heart Disease"
-author: "Sejal-Shannon"
+title: "Prediction of Heart Disease"
+author: "Sejal Desai and Shannon Walsh"
 date: "11/1/2022"
 output: html_document
 ---
@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Chunk 1: #Libraries 
+#Chunk 1: Libraries 
 ```{r}
 library(plotly)
 library(stats)
@@ -27,10 +27,10 @@ library(AER)
 library(robust)
 library(ROCit)
 library(car)
-#library(caret) # for model-building
-#library(DMwR) # for smote implementation - NOT AVAILABLE FOR THIS VersionR
-#library(purrr) # for functional programming (map)
-#library(pROC) 
+library(pROC) 
+library(caret)
+library(aod)
+library(car)
 ```
 
 #Chunk 2: Working directory 
@@ -46,7 +46,7 @@ str(heart_dataframe)
 ```
 
 
-#Chunk 4: Check NAs and for select variable check for missing/invalid data 
+#Chunk 4: Data Clea-up - Check NAs and for select variable check for missing/invalid data 
 Missing data checked for variables Age, RestingBP, Cholesterol and MaxHR, as these are the variables where a value zero is not valid. Missing/Zero values replaced by NA
 ```{r}
 colSums(is.na(heart_dataframe))
@@ -65,10 +65,8 @@ invalid_MaxHR <- heart_dataframe$MaxHR == 0
 heart_dataframe$MaxHR[invalid_MaxHR] <- NA
 
 nrow(heart_dataframe)
-#na.omit(heart_dataframe)
 colSums(is.na(heart_dataframe))
 summary(heart_dataframe)
-table(heart_dataframe$Cholesterol)
 head(heart_dataframe, 50)
 ```
 
@@ -189,7 +187,6 @@ stat.desc(heart_dataframe$MaxHR, basic = FALSE, norm = TRUE)
 shapiro.test(heart_dataframe$MaxHR)
 
 
-
 #OLD PEAK 
 Oldpeak_distribution <- ggplot(heart_dataframe, aes( x= heart_dataframe$Oldpeak, fill = heart_dataframe$Oldpeak))+
   geom_histogram(color = "Black", fill = "cadetblue")+
@@ -297,7 +294,7 @@ prop.table(table(heart_dataframe$HeartDisease))
 #Within the data set ~55.3% have heart disease and ~44.7% do not.
 ```
 
-#Chunk: BIAS ANALYSIS 
+#Chunk 8: BIAS ANALYSIS 
 ```{r}
 #bias analysis for gender distribution #Sampling Bias 
 table(heart_dataframe["Sex"])
@@ -317,7 +314,7 @@ DPL <- (qa-qd)
 DPL # -0.373 
 ```
 
-#Chunk 8: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
+#Chunk 9: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
 ```{r}
 heart_dfnum <- subset(heart_dataframe, select = -c(HeartDisease))
 
@@ -359,42 +356,41 @@ heart_dfnum$ExerciseAngina <- as.numeric(heart_dfnum$ExerciseAngina)
 
 log_dataframe <- data.frame(heart_dataframe$Age, log_cholesterol,log_RBP, log_oldpeak, heart_dataframe$MaxHR, heart_dfnum$ST_Slope, heart_dfnum$Sex, heart_dfnum$ChestPainType, heart_dfnum$FastingBS,heart_dfnum$RestingECG, heart_dfnum$ExerciseAngina)
 str(log_dataframe)
-colnames(log_dataframe) <- c("Age", "Cholesterol", "Resting Blood Pressure", "Old Peak", "Max Heart Rate" , "ST Slope", "Gender","Types of Chest Pain", "Fasting Blood Sugar Levels", "Resting ECG", "Exercise Induced Angina" )
-
+colnames(log_dataframe) <- c("Age", "Cholesterol_Level", "Resting_Blood_Pressure", "Old_Peak", "Max_Heart_Rate" , "ST_slope", "Gender","Types_of_Chest_Pain", "Fasting_Blood_Sugar_Levels", "Resting_ECG", "Exercise_Induced_Angina" )
 
 head(heart_dfnum,20)
 summary(heart_dfnum)
 str(heart_dfnum)
 ```
  
-#Chunk 9: Correlation Matrix and Plots 
+#Chunk 10: Correlation Matrix and Plots 
 ```{r}
-#originally numeric variables only 
-heart_numeric_log <- select_if(log_dataframe, is.numeric)
-heart_numeric_log
-heart_numcor_log <- cor(heart_numeric, use = "complete", method = "spearman")
-heart_numcor_log
-corrplot(heart_numcor_log, method = "circle")
-
-#all variables to numeric (except Outcome Variable) 
-heart_allnum_cor <- cor(heart_dfnum, use = "complete.obs", method = "spearman")
+#Collrelation of all variables to numeric (except Outcome Variable) 
+heart_allnum_cor <- cor(select_if (heart_dfnum, is.numeric), use = "complete.obs", method = "spearman")
 heart_allnum_cor 
 heart_allnum_corplot <- corrplot(heart_allnum_cor, method = "circle", order = "alphabet", tl.cex = 0.7)
 
-#All - transformed 
+
+#correlation of Transformed dataset 
 heart_logcor <- cor(log_dataframe, use = "complete.obs", method = "spearman")
 heart_logcor
 heart_logcorplot <- corrplot(heart_logcor, method = "square", order = "alphabet", tl.cex = 0.7)
 
+cor.test(log_dataframe$Age, log_dataframe$Max_Heart_Rate, alternative = "two.sided", method = "spearman") #H0 true (-ve)
+cor.test(log_dataframe$Fasting_Blood_Sugar_Levels, log_dataframe$Max_Heart_Rate, alternative = "two.sided", method = "spearman")# H0  true(+ve)
+cor.test(log_dataframe$ST_slope, log_dataframe$Old_Peak, alternative = "two.sided", method = "spearman") #H0 true (-ve)
+cor.test(log_dataframe$ST_slope, log_dataframe$Exercise_Induced_Angina, alternative = "two.sided", method = "spearman") #Ho true (-ve)
+
 ```
 
 
-#Chunk 10: Correlation graphs: Age and Lab Values VS Heart Disease 
+#Chunk 11: Graphs: Age and Lab Values VS Heart Disease 
 ```{r}
 #Between Heart Disease and Age 
-age_HD <- ggplot(heart_dataframe, aes(x = Age, fill = HeartDisease, color = HeartDisease))+
+
+age_HD <- ggplot(log_dataframe, aes(x = Age, fill = heart_dataframe$HeartDisease, color = heart_dataframe$HeartDisease))+
           geom_histogram(binwidth = 1, color = "black") +
-          facet_wrap(vars(HeartDisease))+
+          facet_wrap(vars(heart_dataframe$HeartDisease))+
           xlab("Age in Years")+
           ylab("Frequency of presence or absence of Heart Disease")+
           ggtitle("Distribution of Heart Disease in relation to Age")
@@ -405,22 +401,26 @@ age_HD
 #3. Hence we can conclude that heart disease is more prevalent in older population compared to younger. 
 
 #Between Resting blood pressure and presence/absence of heart disease
-RBP_HD <- ggplot(heart_dataframe, aes( x = RestingBP, fill = HeartDisease))+
+RBP_HD <- ggplot(log_dataframe, aes( x = Resting_Blood_Pressure, fill = heart_dataframe$HeartDisease))+
           geom_histogram()+
           xlab("Resting Blood Pressure in mmhg")+
           ylab(" Heart Disease")
 # There does not appear to be a very strong relationship between resting BP and Presence and absence of heart disease as the median (middle 50%) of values for both plots are very similar. 
 RBP_HD
 
-CHL_HD <- ggplot(heart_dataframe, aes( x = Cholesterol,  fill = HeartDisease))+
-          geom_histogram()+
+
+CHL_HD <- ggplot(log_dataframe, aes(x = Cholesterol_Level, fill = heart_dataframe$HeartDisease, color = heart_dataframe$HeartDisease))+
+          geom_histogram(binwidth = 1, color = "black") +
+          facet_wrap(vars(heart_dataframe$HeartDisease))+
           xlab("Serum Cholesterol Levels in mg/dl")+
-          ylab("Heart Disease")
+          ylab("Heart Disease")+
+          ggtitle("Distribution of Heart Disease in relation to Serum Cholesterol Levels")
 CHL_HD
+
 #Similarly, there does not appear to be a very strong relationship between Serum Cholesterol and Presence and absence of heart disease as the median (middle 50%) of values for both plots are very similar. 
 
 #Relationship between max HR achieved during exercise and presence and absence of heart disease 
-MHR_HD <- ggplot(heart_dataframe, aes( x = MaxHR, fill = HeartDisease))+
+MHR_HD <- ggplot(log_dataframe, aes( x = Max_Heart_Rate, fill = heart_dataframe$HeartDisease))+
           geom_histogram()+
           xlab("Maximum HR during exercise in bpm")+
           ylab("Heart Disease")
@@ -429,7 +429,7 @@ MHR_HD
 #There is a strong relationship between Max HR induced during exercise and presence and absence of heart disease. Subjects without heart disease are able to achieve a higher Max HR overall compared to subjects with heart disease. 
 
 #Between Fasting blood sugar levels and presence/absence of heart disease
-FBS_HD <- ggplot(heart_dataframe, aes(x = FastingBS, fill = HeartDisease))+
+FBS_HD <- ggplot(log_dataframe, aes(x = Fasting_Blood_Sugar_Levels, fill = heart_dataframe$HeartDisease))+
           geom_bar(position = "fill") +
           xlab("Fasting Blood Sugar levles in mgdl")+
           ylab("Frequency of presence or absence of Heart Disease")+
@@ -442,10 +442,10 @@ FBS_HD
 ```
 
 
-#Chunk 11: Correlation: Cardiovascular events and Heart Disease 
+#Chunk 12: Graphs: Cardiovascular events and Heart Disease 
 ```{r}
 #Between Exercise induced angina and presence and absence of heart disease
-ExAng_HD <- FBS_HD <- ggplot(heart_dataframe, aes(x = ExerciseAngina, fill = HeartDisease))+
+ExAng_HD <- ggplot(log_dataframe, aes(x = Exercise_Induced_Angina, fill = heart_dataframe$HeartDisease))+
           geom_bar(position = "fill") +
           xlab("Presence or Absence of exercise induced angina")+
           ylab("Heart Disease")+
@@ -455,12 +455,13 @@ ExAng_HD
 # Proportions in the plot indicate that there exists a relationship between the two. 
 # Rate of presence of exercise induced angina is significantly higher in subjects with heart disease compared to those with no heart disease (i.e. Health)
 
+
 #Between ST segment depression induced by exercise and Heart Disease 
 #Note: ST segment depression less than 0.5 mm is accepted in all leads. ST segment depression 0.5 mm or more is considered pathological. 
 
-Oldpeak_HD <- ggplot(heart_dataframe, aes(x = Oldpeak, fill = HeartDisease, color = HeartDisease))+
+Oldpeak_HD <- ggplot(log_dataframe, aes(x = Old_Peak, fill = heart_dataframe$HeartDisease, color = heart_dataframe$HeartDisease))+
           geom_histogram(binwidth = 0.5, color = "black") +
-          facet_wrap(vars(HeartDisease))+
+          facet_wrap(vars(heart_dataframe$HeartDisease))+
           xlab("ST segment depression values in mm")+
           ylab(" Heart Disease")+
           ggtitle("ST depression induced by exercise and presence and absence of heart disease")
@@ -480,9 +481,9 @@ CPT_HD <- ggplot(heart_dataframe, aes( x = HeartDisease, fill = ChestPainType))+
   ggtitle("Distribution of chest pain types in presence vs absence of heart disease")
 CPT_HD
 
-```
 
-#Chunk 12.0: Logistic Regression - PsurdoR initiation
+```
+#Chunk 13: Logistic Regression - PsurdoR initiation
 ```{r}
 #pseudoR calculation function for later use 
 logisticPseudoR2s <- function(LogModel) {
@@ -499,14 +500,18 @@ logisticPseudoR2s <- function(LogModel) {
 }
 ```
 
-#Chunk 12.1: Logistic Regression 
+
+
+#Chunk 14: Logistic Regression
 ```{r}
 summary(heart_dataframe)
 table(heart_dataframe$HeartDisease)
 prop.table(table(heart_dataframe$HeartDisease)) 
 #55.34% have heart disease (508/918)
 ```
-#Chunk 12.2 : Logistic Regression: Thresholding Outcome Variable HeartDisease and conversion to factor 
+
+#Chunk 15 : Logistic Regression: Thresholding Outcome Variable HeartDisease and conversion to factor
+
 ```{r}
 #assigning threshold to Heart Disease 
 heart_dataframe$YN_HeartDisease[heart_dataframe$HeartDisease == "Health"] <- "0"
@@ -522,20 +527,22 @@ table(heart_dataframe$YN_HeartDisease)
 str(heart_dataframe)
 ```
 
-#Chunk 12.3: Logistic Regression - Building Model 1 = model1_full
+#Chunk 16: Logistic Regression - Building Model 1 = model1_full
 ```{r}
+str(heart_dataframe)
 model1_full <- glm(YN_HeartDisease ~ Age + Sex + ChestPainType + RestingBP + Cholesterol+ FastingBS+RestingECG+ MaxHR+ ExerciseAngina+Oldpeak+ ST_Slope, data= heart_dataframe, family=binomial())
 summary(model1_full)
 ```
 
-#Chunk 12.4: Logistic Regression - Model 2 (with significant variables only )
+#Chunk 17: Logistic Regression - Model 2 (with significant variables only )
 ```{r}
-#model 2 - no interactions
+#model 2 - Significant variables and no interactions
 model2.1_reduced <- glm(YN_HeartDisease ~ Sex + ChestPainType + FastingBS + ExerciseAngina+Oldpeak+ ST_Slope,  data = heart_dataframe, family=binomial())
 model2.1_reduced
 
 coef(model2.1_reduced)
 exp(coef(model2.1_reduced))
+vif(model2.1_reduced)
 #Odds of Heart Disease Increases by a factor of 2.72  with every event of presence of Exercise Angina while holding rest constant.  
 #Odds of Heart Disease Increased by a factor of 3.55 for every unit increase in ST_Slope(Flat) ??? while holding rest constant 
 #Odds of Heart Disease increases by a factor of 1.45 for every unit of depression in ST segment induced by exercise (Oldpeak) 
@@ -555,10 +562,10 @@ vif(model2.2_reduced)
 
 ```
 
-# Chunk 13.0: Removing Outliers for Model 3 
+# Chunk 18: Removing Outliers for Model 3 
 ```{r}
 #find outliers 
-cooksd <- cooks.distance(model2_reduced)
+cooksd <- cooks.distance(model2.2_reduced)
 cooksd
 plot(cooksd, pch = "*", cex = 2) 
 
@@ -580,30 +587,48 @@ nrow(heart_no_outlier)
 
 ```
 
-#Chunk 13.1:  Logistic Regression Model 3: 
+#Chunk 19 -  Model 3.1 (model 2 with no outliers)
 ```{r}
-heartdf_no_outlier <- data.frame(heart_no_outlier)
 head(heartdf_no_outlier)
-
+#MODEL 3.1: model 2 with no outliers 
 model3.1 <- glm(YN_HeartDisease ~ Sex + ChestPainType + Oldpeak+ ST_Slope + FastingBS + ExerciseAngina + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
 
-model3.2 <- glm(YN_HeartDisease ~ Sex + ChestPainType + Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
 
 model3.1
-model3.2
 summary(model3.1) 
-summary(model3.2)
 
-coef(model3)
-exp(coef(model3))
-
+coef(model3.1)
+exp(coef(model3.1))
 vif(model3.1)
+
+model3.1r2  <- 1- model3.1$deviance/model3.1$null.deviance
+model3.1r2
+
+model3.1adjustedr2 <- 1-(model3.1$deviance-(ncol(heart_dataframe)-1))/model3.1$null.deviance
+model3.1adjustedr2
+```
+
+#Chunk 20: MODEL 3.2:  model 3.1 without variables with high VIF 
+```{r}
+
+model3.2 <- glm(YN_HeartDisease ~  Sex + ChestPainType + ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
+model3.2
+summary(model3.2)
+   
+coef(model3.2)
+exp(coef(model3.2))
 vif(model3.2)
+
+model3.2r2  <- 1- model3.2$deviance/model3.2$null.deviance
+model3.2r2
+
+model3.2adjustedr2 <- 1-(model3.2$deviance-(ncol(heart_dataframe)-1))/model3.2$null.deviance
+model3.2adjustedr2
 ```
 
 #HYPOTHESIS TESTING - Non-parametric 
 
-#Chunk 14: Comparing  model 1 & 2.1 and  2.1 & 2.2 performance - ANOVA 
+#Chunk 21: Comparing  model performance - ANOVA 
 ```{r}
 anova(model1_full, model2.1_reduced, test = "Chisq")
 
@@ -613,18 +638,31 @@ anova(model2.1_reduced, model2.2_reduced, test = "Chisq")
 
 #However, the significant chi-square value(p = 0.0008) suggests that model (2.2_reduced) with predictors with high variance inflation factor removed from list of significant predictors fits better than the model(2.1_reduced) with all significant predictors. 
 
+```
+#Chunk 22: Compare models with R2 and Adjusted r2 
+```{r}
+R_square  <- 1- model2.2_reduced$deviance/model2.2_reduced$null.deviance
+R_square
 
+adjusted_R_square <- 1-(model2.2_reduced$deviance-(ncol(heart_dataframe)-1))/model2.2_reduced$null.deviance
+adjusted_R_square
+
+R_square  <- 1- model3.2$deviance/model3.2$null.deviance
+R_square
+
+adjusted_R_square <- 1-(model3.2$deviance-(ncol(heart_dataframe)-1))/model3.2$null.deviance
+adjusted_R_square
 ```
 
-
-#chunk 14.1  compare models 2.2_reduced and 3.2 - PseudoR2
+#chunk 23  compare models - PseudoR2
 ```{r}
+
 pseudo_2.2 <-  logisticPseudoR2s(model2.2_reduced) #model without significant predictors with high VIF 
 pseudo_3.2 <- logisticPseudoR2s(model3.2) #model without outliers & significant predictors with high VIF 
 
 ```
 
-# Chunk 14.2 Confusion matrix for  models 2.2_reduced and 3.2 using heart dataset with no outliers 
+#Chunk 24:  Confusion matrix and Accurancy: models 2.2_reduced and 3.2 using heart dataset with no outliers 
 ```{r}
 #model2.2_reduced with heartdf_no_outlier
 heartdf_no_outlier$predict_1 <- predict(model2.2_reduced, newdata=heartdf_no_outlier, type="response")
@@ -636,7 +674,10 @@ heartdf_no_outlier$eval_1[heartdf_no_outlier$predicted_YN_HeartDisease_1==1 & he
 heartdf_no_outlier$eval_1[heartdf_no_outlier$predicted_YN_HeartDisease_1==0 & heartdf_no_outlier$YN_HeartDisease_bin ==1]="False Negative"
 heartdf_no_outlier$eval_1[heartdf_no_outlier$predicted_YN_HeartDisease_1==0 & heartdf_no_outlier$YN_HeartDisease_bin ==0]="True Negative"
 
-table(heartdf_no_outlier$eval_1) #model2.2_reduced with heartdf_no_outlier
+tab_2.2_reduced <- table(heartdf_no_outlier$eval_1) #model2.2_reduced with heartdf_no_outlier
+tab_2.2_reduced
+accuracy_2.2 <- (337+452)/(22+37+336+450)
+accuracy_2.2
 
 #model3.2 with heartdf_no_outlier 
 heartdf_no_outlier$predict_2 <- predict(model3.2, newdata=heartdf_no_outlier, type="response")
@@ -648,10 +689,15 @@ heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==1 & he
 heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==0 & heartdf_no_outlier$YN_HeartDisease_bin ==1]="False Negative"
 heartdf_no_outlier$eval_2[heartdf_no_outlier$predicted_YN_HeartDisease_2==0 & heartdf_no_outlier$YN_HeartDisease_bin ==0]="True Negative"
 
-table(heartdf_no_outlier$eval_2)#model3.2 with heartdf_no_outlier 
+tab_3.2 <- table(heartdf_no_outlier$eval_2)#model3.2 with heartdf_no_outlier 
+tab_3.2
+accuracy_3.2 <- (336+451)/(21+37+336+451)
+accuracy_3.2*100
+
+
 ```
 
-#Chunk 14.3 ROC Curve 
+#Chunk 25:  ROC Curve & AUC
 ```{r}
 ROC_curve_model2.2 <- rocit(score=heartdf_no_outlier$predicted_YN_HeartDisease_1,class=heartdf_no_outlier$YN_HeartDisease_bin)
 plot(ROC_curve_model2.2)
@@ -664,31 +710,34 @@ plot(ROC_curve_model3.2)
 test_ROC_model3.2 = roc(heartdf_no_outlier$YN_HeartDisease_bin ~ heartdf_no_outlier$predict_2 , plot = TRUE, print.auc = TRUE)
 ```
 
-#Chunk 14.4: Overdispersion Chk. 
+#Chunk 26: Overdispersion Check. 
 ```{r}
 dispersion_model3.2 <- deviance(model3.2)/df.residual(model3.2)
-dispersion_model3.2 #0.316
+dispersion_model3.2 #0.42
 
 #Absence of significant overdispersion. 
 ```
 
-#Chunk 15: Conclusion 
+#Chunk 27: Odds Ratio and Confidence Interval 
 ```{r}
-model3.2 <- glm(YN_HeartDisease ~ Sex + ChestPainType + Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
-
+model3.2 <- glm(YN_HeartDisease ~ Sex +  ChestPainType + Oldpeak+ ST_Slope + FastingBS:MaxHR + ST_Slope:Oldpeak + MaxHR:Age + ST_Slope:ExerciseAngina, data = heartdf_no_outlier, family=binomial())
 model3.2
 summary(model3.2)
 coef(model3.2)
-
-vif(model3.2)
 exp(coef(model3.2))
+vif(model3.2)
 confint(model3.2)
 
 #combining odds ratio and 97.5% CI 
 exp(cbind(OR = coef(model3.2), confint(model3.2)))
 
-#TENTATIVE CONCLUSION
-#For every unit change in interaction between Nature of ST Slope and Presence of Exercise Induced Angina there was a multiplication in the odds of presence of heart disease by a factor of 2.5. 
 ```
+
+#CONCLUSION
+Reject Null Hypothesis and accept the alternate hypothesis: 
+
+For every unit change in interaction between Presence of Exercise Induced Angina and Nature of the ST Slope on ECG the odds of presence of heart disease are multiplied by a factor of 2.7 while holding the other variables constant .
+
+
 
 
