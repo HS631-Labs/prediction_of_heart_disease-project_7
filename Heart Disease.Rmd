@@ -40,6 +40,7 @@ getwd()
 
 #Chunk 3: Read in the data 
 ```{r}
+
 heart_dataframe <- read.csv("./data/heart.csv")
 head(heart_dataframe)
 str(heart_dataframe)
@@ -331,7 +332,6 @@ DPL # -0.373
 ```
 
 #Chunk 8: Data conversion to all numeric (except HeartDisease) to obtain a complete correlation matrix and correlation plot 
->>>>>>> origin
 ```{r}
 heart_dfnum <- subset(heart_dataframe, select = -c(HeartDisease))
 
@@ -753,7 +753,7 @@ exp(cbind(OR = coef(model3.2), confint(model3.2)))
 #CONCLUSION
 Reject Null Hypothesis and accept the alternate hypothesis: 
 
-For every unit change in interaction between Presence of Exercise Induced Angina and Nature of the ST Slope on ECG the odds of presence of heart disease are multiplied by a factor of 2.7 while holding the other variables constant .
+For every unit change in interaction between Presence of Exercise Induced Angina and Nature of the ST Slope on ECG the odds of presence of heart disease are multiplied by a factor of 2.7 while holding the other variables constant . #TEST 
 
 
 
